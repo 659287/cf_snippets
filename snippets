@@ -1,45 +1,38 @@
 import { connect } from 'cloudflare:sockets';
 
-// --- 硬编码配置 ---
-const authToken = 'f64bdc57-0f54-4705-bf75-cfd646d98c06';
+const authToken = '8187409d-802e-4da3-a8e3-57b7304d29ea';
 const fallbackAddress = 'ProxyIP.cmliussss.net';
 const fallbackPort = '443';
-const socks5Config = '';
-// API地址配置
-const apiBaseUrl = 'https://s.jhb.edu.kg/sub';
 
 const directDomains = [
-    { name: "cloudflare.182682.xyz", domain: "cloudflare.182682.xyz" }, 
+    { name: "cloudflare.182682.xyz", domain: "cloudflare.182682.xyz" },
     { name: "speed.marisalnc.com", domain: "speed.marisalnc.com" },
     { domain: "freeyx.cloudflare88.eu.org" },
-	{ domain: "bestcf.top" }, 
+    { domain: "bestcf.top" },
     { domain: "cdn.2020111.xyz" },
-	{ domain: "cfip.cfcdn.vip" },
+    { domain: "cfip.cfcdn.vip" },
     { domain: "cf.0sm.com" },
-	{ domain: "cf.090227.xyz" }, 
+    { domain: "cf.090227.xyz" },
     { domain: "cf.zhetengsha.eu.org" },
-	{ domain: "cloudflare.9jy.cc" },
+    { domain: "cloudflare.9jy.cc" },
     { domain: "cf.zerone-cdn.pp.ua" },
-	{ domain: "cfip.1323123.xyz" }, 
+    { domain: "cfip.1323123.xyz" },
     { domain: "cnamefuckxxs.yuchen.icu" },
-	{ domain: "cloudflare-ip.mofashi.ltd" },
+    { domain: "cloudflare-ip.mofashi.ltd" },
     { domain: "115155.xyz" },
-	{ domain: "cname.xirancdn.us" }, 
+    { domain: "cname.xirancdn.us" }, 
     { domain: "f3058171cad.002404.xyz" },
-	{ domain: "8.889288.xyz" },
+    { domain: "8.889288.xyz" },
     { domain: "cdn.tzpro.xyz" },
-	{ domain: "cf.877771.xyz" }, 
+    { domain: "cf.877771.xyz" },
     { domain: "xn--b6gac.eu.org" },
-	{ domain: 'bestcf.030101.xyz' },
-	{ domain: 'japan.com' },
-	{ domain: 'www.visa.com.sg' },
-	{ domain: 'www.visa.com.hk' },
-	{ domain: 'icook.hk' },
-	{ domain: 'icook.tw' }
+    { domain: 'bestcf.030101.xyz' },
+    { domain: 'japan.com' },
+    { domain: 'www.visa.com.sg' },
+    { domain: 'www.visa.com.hk' },
+    { domain: 'icook.hk' },
+    { domain: 'icook.tw' }
 ];
-
-const parsedSocks5Config = {};
-const isSocksEnabled = false;
 
 const E_INVALID_DATA = atob('aW52YWxpZCBkYXRh');
 const E_INVALID_USER = atob('aW52YWxpZCB1c2Vy');
@@ -49,69 +42,64 @@ const E_INVALID_ADDR_TYPE = atob('aW52YWxpZCBhZGRyZXNzVHlwZQ==');
 const E_EMPTY_ADDR = atob('YWRkcmVzc1ZhbHVlIGlzIGVtcHR5');
 const E_WS_NOT_OPEN = atob('d2ViU29ja2V0LmVhZHlTdGF0ZSBpcyBub3Qgb3Blbg==');
 const E_INVALID_ID_STR = atob('U3RyaW5naWZpZWQgaWRlbnRpZmllciBpcyBpbnZhbGlk');
-const E_INVALID_SOCKS_ADDR = atob('SW52YWxpZCBTT0NLUyBhZGRyZXNzIGZvcm1hdA==');
-const E_SOCKS_NO_METHOD = atob('bm8gYWNjZXB0YWJsZSBtZXRob2Rz');
-const E_SOCKS_AUTH_NEEDED = atob('c29ja3Mgc2VydmVyIG5lZWRzIGF1dGg=');
-const E_SOCKS_AUTH_FAIL = atob('ZmFpbCB0byBhdXRoIHNvY2tzIHNlcnZlcg==');
-const E_SOCKS_CONN_FAIL = atob('ZmFpbCB0byBvcGVuIHNvY2tzIGNvbm5lY3Rpb24=');
 
 const ADDRESS_TYPE_IPV4 = 1;
 const ADDRESS_TYPE_URL = 2;
 const ADDRESS_TYPE_IPV6 = 3;
 
 export default {
-	async fetch(request, env, ctx) {
-		try {
-			const url = new URL(request.url);
+    async fetch(request, env, ctx) {
+        try {
+            const url = new URL(request.url);
 
-			if (request.headers.get('Upgrade') === 'websocket') {
-				return await handleWsRequest(request);
-			} else if (request.method === 'GET') {
-				if (url.pathname === '/') {
-					const successHtml = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>部署成功</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background-color:#121212;color:#e0e0e0;text-align:center;}.container{padding:2rem;border-radius:8px;background-color:#1e1e1e;box-shadow:0 4px 6px rgba(0,0,0,0.1);}h1{color:#4caf50;}</style></head><body><div class="container"><h1>✅ 部署成功</h1><p>功能已启用</p></div></body></html>`;
-					return new Response(successHtml, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
-				}
-				// 支持UUID路径：/uuid - 显示图形化界面
-				if (url.pathname.length > 1 && url.pathname !== '/' && !url.pathname.includes('/sub')) {
-					const uuid = url.pathname.replace(/\/$/, '').substring(1); // 移除末尾斜杠
-					if (isValidFormat(uuid)) {
-						if (uuid === authToken) {
-							return await handleSubscriptionPage(request, uuid);
-						} else {
-							return new Response('UUID错误', { status: 403 });
-						}
-					}
-				}
-				// 支持UUID/sub路径：/uuid/sub - 返回订阅
-				if (url.pathname.includes('/sub')) {
-					const pathParts = url.pathname.split('/');
-					if (pathParts.length === 2 && pathParts[1] === 'sub') {
-						const uuid = pathParts[0].substring(1);
-						if (isValidFormat(uuid)) {
-							if (uuid === authToken) {
-								return await handleSubscriptionRequest(request, uuid, url);
-							} else {
-								return new Response('UUID错误', { status: 403 });
-							}
-						}
-					}
-				}
-				// 保持向后兼容
-				if (url.pathname.toLowerCase().includes(`/${authToken}`)) {
-					return await handleSubscriptionRequest(request, authToken);
-				}
-			}
-			return new Response('Not Found', { status: 404 });
-		} catch (err) {
-			return new Response(err.toString(), { status: 500 });
-		}
-	},
+            if (request.headers.get('Upgrade') === 'websocket') {
+                return await handleWsRequest(request);
+            } else if (request.method === 'GET') {
+                if (url.pathname === '/') {
+                    const successHtml = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>部署成功</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background-color:#121212;color:#e0e0e0;text-align:center;}.container{padding:2rem;border-radius:8px;background-color:#1e1e1e;box-shadow:0 4px 6px rgba(0,0,0,0.1);}h1{color:#4caf50;}</style></head><body><div class="container"><h1>✅ 部署成功</h1><p>功能已启用</p></div></body></html>`;
+                    return new Response(successHtml, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+                }
+
+                if (url.pathname.length > 1 && url.pathname !== '/' && !url.pathname.includes('/sub')) {
+                    const uuid = url.pathname.replace(/\/$/, '').substring(1); // 移除末尾斜杠
+                    if (isValidFormat(uuid)) {
+                        if (uuid === authToken) {
+                            return await handleSubscriptionPage(request, uuid);
+                        } else {
+                            return new Response('UUID错误', { status: 403 });
+                        }
+                    }
+                }
+
+                if (url.pathname.includes('/sub')) {
+                    const pathParts = url.pathname.split('/');
+                    if (pathParts.length === 2 && pathParts[1] === 'sub') {
+                        const uuid = pathParts[0].substring(1);
+                        if (isValidFormat(uuid)) {
+                            if (uuid === authToken) {
+                                return await handleSubscriptionRequest(request, uuid, url);
+                            } else {
+                                return new Response('UUID错误', { status: 403 });
+                            }
+                        }
+                    }
+                }
+
+                if (url.pathname.toLowerCase().includes(`/${authToken}`)) {
+                    return await handleSubscriptionRequest(request, authToken);
+                }
+            }
+            return new Response('Not Found', { status: 404 });
+        } catch (err) {
+            return new Response(err.toString(), { status: 500 });
+        }
+    },
 };
 
 async function handleSubscriptionPage(request, uuid = null) {
-	if (!uuid) uuid = authToken;
-	
-	const pageHtml = `<!DOCTYPE html>
+    if (!uuid) uuid = authToken;
+
+    const pageHtml = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -228,10 +216,9 @@ async function handleSubscriptionPage(request, uuid = null) {
 <body>
     <div class="matrix-bg"></div>
     <div class="matrix-rain"></div>
-    <div class="matrix-text">代理订阅中心 v0.1</div>
     <div class="container">
         <div class="header">
-            <h1 class="title">代理订阅中心</h1>
+            <h1 class="title">订阅中心</h1>
             <p class="subtitle">多客户端支持 • 智能优选 • 一键生成</p>
         </div>
         <div class="card">
@@ -250,20 +237,13 @@ async function handleSubscriptionPage(request, uuid = null) {
             <button class="generate-btn" onclick="getBase64Subscription()">获取订阅链接</button>
             <div class="subscription-url" id="base64SubscriptionUrl"></div>
         </div>
-        <div class="card">
-            <h2 class="card-title">[ 相关链接 ]</h2>
-            <div style="text-align: center; margin: 20px 0;">
-                <a href="https://github.com/byJoey/cfnew" target="_blank" style="color: #00ff00; text-decoration: none; margin: 0 20px; font-size: 1.2rem; text-shadow: 0 0 5px #00ff00;">GitHub 项目</a>
-                <a href="https://www.youtube.com/@joeyblog" target="_blank" style="color: #00ff00; text-decoration: none; margin: 0 20px; font-size: 1.2rem; text-shadow: 0 0 5px #00ff00;">YouTube @joeyblog</a>
-            </div>
-        </div>
     </div>
     <script>
         function generateClientLink(clientType) {
             var currentUrl = window.location.href;
             var subscriptionUrl = currentUrl + "/sub";
-            
-            // V2RAY 不需要转换，直接返回原始订阅
+
+
             if (clientType === 'v2ray') {
                 document.getElementById("clientSubscriptionUrl").textContent = subscriptionUrl;
                 document.getElementById("clientSubscriptionUrl").style.display = "block";
@@ -271,7 +251,7 @@ async function handleSubscriptionPage(request, uuid = null) {
                     alert("V2Ray 订阅链接已复制");
                 });
             } else {
-                // 其他客户端需要通过API转换
+
                 var encodedUrl = encodeURIComponent(subscriptionUrl);
                 var apiUrl = "https://s.jhb.edu.kg/sub?target=" + clientType + "&url=" + encodedUrl + "&insert=false";
                 document.getElementById("clientSubscriptionUrl").textContent = apiUrl;
@@ -287,8 +267,8 @@ async function handleSubscriptionPage(request, uuid = null) {
         function getBase64Subscription() {
             var currentUrl = window.location.href;
             var subscriptionUrl = currentUrl + "/sub";
-            
-            // 直接获取Base64订阅内容
+
+
             fetch(subscriptionUrl)
                 .then(function(response) {
                     return response.text();
@@ -308,16 +288,16 @@ async function handleSubscriptionPage(request, uuid = null) {
     </script>
 </body>
 </html>`;
-	
-	return new Response(pageHtml, { 
-		status: 200, 
-		headers: { 'Content-Type': 'text/html; charset=utf-8' } 
-	});
+
+    return new Response(pageHtml, { 
+        status: 200, 
+        headers: { 'Content-Type': 'text/html; charset=utf-8' } 
+    });
 }
 
 async function handleSubscriptionRequest(request, uuid, url = null) {
     if (!url) url = new URL(request.url);
-    
+
     const finalLinks = [];
     const workerDomain = url.hostname;
     const target = url.searchParams.get('target') || 'base64';
@@ -346,7 +326,7 @@ async function handleSubscriptionRequest(request, uuid, url = null) {
 
     let subscriptionContent;
     let contentType = 'text/plain; charset=utf-8';
-    
+
     switch (target.toLowerCase()) {
         case 'clash':
         case 'clashr':
@@ -375,7 +355,7 @@ async function handleSubscriptionRequest(request, uuid, url = null) {
         default:
             subscriptionContent = btoa(finalLinks.join('\n'));
     }
-    
+
     return new Response(subscriptionContent, {
         headers: { 
             'Content-Type': contentType,
@@ -432,7 +412,7 @@ async function fetchDynamicIPs() {
         const html = await response.text();
         const results = [];
         const rowRegex = /<tr><td>([\d.:a-fA-F]+)<\/td><td>.*?<\/td><td>.*?<\/td><td>.*?<\/td><td>(.*?)<\/td>.*?<\/tr>/g;
-        
+
         let match;
         while ((match = rowRegex.exec(html)) !== null) {
             if (match[1] && match[2]) {
@@ -499,7 +479,7 @@ function generateLinksFromNewIPs(list, uuid, workerDomain) {
     return links;
 }
 
-// 简化的客户端格式生成函数
+
 async function generateClashConfig(links) {
     const config = {
         port: 7890,
@@ -512,7 +492,7 @@ async function generateClashConfig(links) {
         ],
         rules: ['GEOIP,CN,DIRECT', 'MATCH,PROXY']
     };
-    
+
     for (const link of links) {
         if (link.startsWith('vless://')) {
             const proxy = parseVlessLink(link);
@@ -522,7 +502,7 @@ async function generateClashConfig(links) {
             }
         }
     }
-    
+
     return JSON.stringify(config, null, 2);
 }
 
@@ -531,7 +511,7 @@ function parseVlessLink(link) {
         const url = new URL(link);
         const params = new URLSearchParams(url.search);
         const name = decodeURIComponent(url.hash.substring(1));
-        
+
         return {
             name: name,
             type: 'vless',
@@ -608,7 +588,7 @@ server_remote = `;
     }
     config += `\n\n[policy]
 static = 节点选择, `;
-    
+
     const nodeNames = [];
     for (const link of links) {
         if (link.startsWith('vless://')) {
@@ -619,7 +599,7 @@ static = 节点选择, `;
     config += nodeNames.join(', ');
     config += `\n\n[filter]
 FINAL, 节点选择`;
-    
+
     return config;
 }
 
@@ -659,7 +639,7 @@ dns-server = 8.8.8.8, 1.1.1.1
     return config;
 }
 
-// WebSocket处理函数（简化版）
+
 async function handleWsRequest(request) {
     const wsPair = new WebSocketPair();
     const [clientSock, serverSock] = Object.values(wsPair);
@@ -723,73 +703,73 @@ async function forwardTCP(addrType, host, portNum, rawData, ws, respHeader, remo
 }
 
 function parseWsPacketHeader(chunk, token) {
-	if (chunk.byteLength < 24) return { hasError: true, message: E_INVALID_DATA };
-	const version = new Uint8Array(chunk.slice(0, 1));
-	if (formatIdentifier(new Uint8Array(chunk.slice(1, 17))) !== token) return { hasError: true, message: E_INVALID_USER };
-	const optLen = new Uint8Array(chunk.slice(17, 18))[0];
-	const cmd = new Uint8Array(chunk.slice(18 + optLen, 19 + optLen))[0];
-	let isUDP = false;
-	if (cmd === 1) {} else if (cmd === 2) { isUDP = true; } else { return { hasError: true, message: E_UNSUPPORTED_CMD }; }
-	const portIdx = 19 + optLen;
-	const port = new DataView(chunk.slice(portIdx, portIdx + 2)).getUint16(0);
-	let addrIdx = portIdx + 2, addrLen = 0, addrValIdx = addrIdx + 1, hostname = '';
-	const addressType = new Uint8Array(chunk.slice(addrIdx, addrValIdx))[0];
-	switch (addressType) {
-		case ADDRESS_TYPE_IPV4: addrLen = 4; hostname = new Uint8Array(chunk.slice(addrValIdx, addrValIdx + addrLen)).join('.'); break;
-		case ADDRESS_TYPE_URL: addrLen = new Uint8Array(chunk.slice(addrValIdx, addrValIdx + 1))[0]; addrValIdx += 1; hostname = new TextDecoder().decode(chunk.slice(addrValIdx, addrValIdx + addrLen)); break;
-		case ADDRESS_TYPE_IPV6: addrLen = 16; const ipv6 = []; const ipv6View = new DataView(chunk.slice(addrValIdx, addrValIdx + addrLen)); for (let i = 0; i < 8; i++) ipv6.push(ipv6View.getUint16(i * 2).toString(16)); hostname = ipv6.join(':'); break;
-		default: return { hasError: true, message: `${E_INVALID_ADDR_TYPE}: ${addressType}` };
-	}
-	if (!hostname) return { hasError: true, message: `${E_EMPTY_ADDR}: ${addressType}` };
-	return { hasError: false, addressType, port, hostname, isUDP, rawIndex: addrValIdx + addrLen, version };
+    if (chunk.byteLength < 24) return { hasError: true, message: E_INVALID_DATA };
+    const version = new Uint8Array(chunk.slice(0, 1));
+    if (formatIdentifier(new Uint8Array(chunk.slice(1, 17))) !== token) return { hasError: true, message: E_INVALID_USER };
+    const optLen = new Uint8Array(chunk.slice(17, 18))[0];
+    const cmd = new Uint8Array(chunk.slice(18 + optLen, 19 + optLen))[0];
+    let isUDP = false;
+    if (cmd === 1) {} else if (cmd === 2) { isUDP = true; } else { return { hasError: true, message: E_UNSUPPORTED_CMD }; }
+    const portIdx = 19 + optLen;
+    const port = new DataView(chunk.slice(portIdx, portIdx + 2)).getUint16(0);
+    let addrIdx = portIdx + 2, addrLen = 0, addrValIdx = addrIdx + 1, hostname = '';
+    const addressType = new Uint8Array(chunk.slice(addrIdx, addrValIdx))[0];
+    switch (addressType) {
+        case ADDRESS_TYPE_IPV4: addrLen = 4; hostname = new Uint8Array(chunk.slice(addrValIdx, addrValIdx + addrLen)).join('.'); break;
+        case ADDRESS_TYPE_URL: addrLen = new Uint8Array(chunk.slice(addrValIdx, addrValIdx + 1))[0]; addrValIdx += 1; hostname = new TextDecoder().decode(chunk.slice(addrValIdx, addrValIdx + addrLen)); break;
+        case ADDRESS_TYPE_IPV6: addrLen = 16; const ipv6 = []; const ipv6View = new DataView(chunk.slice(addrValIdx, addrValIdx + addrLen)); for (let i = 0; i < 8; i++) ipv6.push(ipv6View.getUint16(i * 2).toString(16)); hostname = ipv6.join(':'); break;
+        default: return { hasError: true, message: `${E_INVALID_ADDR_TYPE}: ${addressType}` };
+    }
+    if (!hostname) return { hasError: true, message: `${E_EMPTY_ADDR}: ${addressType}` };
+    return { hasError: false, addressType, port, hostname, isUDP, rawIndex: addrValIdx + addrLen, version };
 }
 
 function makeReadableStream(socket, earlyDataHeader) {
-	let cancelled = false;
-	return new ReadableStream({
-		start(controller) {
-			socket.addEventListener('message', (event) => { if (!cancelled) controller.enqueue(event.data); });
-			socket.addEventListener('close', () => { if (!cancelled) { closeSocketQuietly(socket); controller.close(); } });
-			socket.addEventListener('error', (err) => controller.error(err));
-			const { earlyData, error } = base64ToArray(earlyDataHeader);
-			if (error) controller.error(error); else if (earlyData) controller.enqueue(earlyData);
-		},
-		cancel() { cancelled = true; closeSocketQuietly(socket); }
-	});
+    let cancelled = false;
+    return new ReadableStream({
+        start(controller) {
+            socket.addEventListener('message', (event) => { if (!cancelled) controller.enqueue(event.data); });
+            socket.addEventListener('close', () => { if (!cancelled) { closeSocketQuietly(socket); controller.close(); } });
+            socket.addEventListener('error', (err) => controller.error(err));
+            const { earlyData, error } = base64ToArray(earlyDataHeader);
+            if (error) controller.error(error); else if (earlyData) controller.enqueue(earlyData);
+        },
+        cancel() { cancelled = true; closeSocketQuietly(socket); }
+    });
 }
 
 async function connectStreams(remoteSocket, webSocket, headerData, retryFunc) {
-	let header = headerData, hasData = false;
-	await remoteSocket.readable.pipeTo(
-		new WritableStream({
-			async write(chunk, controller) {
-				hasData = true;
-				if (webSocket.readyState !== 1) controller.error(E_WS_NOT_OPEN);
-				if (header) { webSocket.send(await new Blob([header, chunk]).arrayBuffer()); header = null; } 
+    let header = headerData, hasData = false;
+    await remoteSocket.readable.pipeTo(
+        new WritableStream({
+            async write(chunk, controller) {
+                hasData = true;
+                if (webSocket.readyState !== 1) controller.error(E_WS_NOT_OPEN);
+                if (header) { webSocket.send(await new Blob([header, chunk]).arrayBuffer()); header = null; } 
                 else { webSocket.send(chunk); }
-			},
-			abort(reason) { console.error("Readable aborted:", reason); },
-		})
-	).catch((error) => { console.error("Stream connection error:", error); closeSocketQuietly(webSocket); });
-	if (!hasData && retryFunc) retryFunc();
+            },
+            abort(reason) { console.error("Readable aborted:", reason); },
+        })
+    ).catch((error) => { console.error("Stream connection error:", error); closeSocketQuietly(webSocket); });
+    if (!hasData && retryFunc) retryFunc();
 }
 
 async function forwardUDP(udpChunk, webSocket, respHeader) {
-	try {
-		const tcpSocket = connect({ hostname: '8.8.4.4', port: 53 });
-		let vlessHeader = respHeader;
-		const writer = tcpSocket.writable.getWriter();
-		await writer.write(udpChunk);
-		writer.releaseLock();
-		await tcpSocket.readable.pipeTo(new WritableStream({
-			async write(chunk) {
-				if (webSocket.readyState === 1) {
-					if (vlessHeader) { webSocket.send(await new Blob([vlessHeader, chunk]).arrayBuffer()); vlessHeader = null; } 
+    try {
+        const tcpSocket = connect({ hostname: '8.8.4.4', port: 53 });
+        let vlessHeader = respHeader;
+        const writer = tcpSocket.writable.getWriter();
+        await writer.write(udpChunk);
+        writer.releaseLock();
+        await tcpSocket.readable.pipeTo(new WritableStream({
+            async write(chunk) {
+                if (webSocket.readyState === 1) {
+                    if (vlessHeader) { webSocket.send(await new Blob([vlessHeader, chunk]).arrayBuffer()); vlessHeader = null; } 
                     else { webSocket.send(chunk); }
-				}
-			},
-		}));
-	} catch (error) { console.error(`DNS forward error: ${error.message}`); }
+                }
+            },
+        }));
+    } catch (error) { console.error(`DNS forward error: ${error.message}`); }
 }
 
 function base64ToArray(b64Str) {
